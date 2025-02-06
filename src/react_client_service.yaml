@@ -1,0 +1,14 @@
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-client
+spec:
+  selector:
+    app: react-client
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: ClusterIP

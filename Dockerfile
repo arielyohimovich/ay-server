@@ -1,20 +1,24 @@
-# בחר את התמונה הבסיסית של Node.js
-FROM node:18
+# השתמש בתמונה קטנה ובטוחה של Node.js
+FROM node:20-alpine
 
-# הגדר את תיקיית העבודה בתוך הקונטיינר
-WORKDIR /usr/src/app
+# הגדר את תיקיית העבודה בקונטיינר
+WORKDIR /app
 
-# העתק את קבצי ה-package.json וה-package-lock.json
+# העתק את קבצי ה-package.json והתקן תלויות
 COPY package*.json ./
+RUN npm install --production
 
-# התקן את התלויות
-RUN npm install
+# העתק את כל הקבצים לקונטיינר
+COPY . ./
 
-# העתק את שאר הקבצים
-COPY . .
+# קומפילציה של TypeScript
+RUN npm run build
 
-# חשוף את הפורט שבו השרת יפעל
+# ציין שהקונטיינר יאזין לפורט 4000
 EXPOSE 4000
 
-# הפעל את השרת
-CMD ["npm", "start"]
+# הגדר משתנה סביבה לפרודקשן
+ENV NODE_ENV=production
+
+# הרץ את האפליקציה
+CMD ["node", "dist/server.js"]

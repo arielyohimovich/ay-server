@@ -1,36 +1,41 @@
-import express from 'express';
-import http from 'http';
-import { Server } from 'socket.io';
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*", // אפשר להגביל זאת לאתרים מסוימים אם רוצים
-  }
+
+// שימוש ב-PORT מתוך environment variables עם ערך ברירת מחדל
+const port: number = parseInt(process.env.PORT || '4000', 10);
+
+// Middleware לאפשר CORS
+app.use(cors());
+
+// Middleware לקריאת JSON בבקשות
+app.use(express.json());
+
+// Middleware ללוגים
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
 });
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// מונה גלובלי
+let counter: number = 0;
 
-  // שליחת הודעה עם תוכן משתנה כל 5 שניות
-  let counter = 0;
-  const interval = setInterval(() => {
-    counter++;
-    console.log(`Sending message: Update #${counter}`);
-    socket.emit('message', `Hello Ariel! Update #${counter}`);
-  }, 5000);
-
-  socket.on("disconnect", () => {
-    console.log("A user disconnected");
-    clearInterval(interval); // לעצור את ה-interval כאשר המשתמש מתנתק
-  });
+// Health Check Endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({ status: 'API is running!' });
 });
 
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
+// אנדפוינט לשליחת הודעה
+app.get('/api/message', (req: Request, res: Response) => {
+  counter++; // הגדלת המונה
+  res.json({ message: ` new message ${counter}` });
 });
 
-server.listen(4000, () => {
-  console.log("Server is running on port 4000");
+// הרצת השרת
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
